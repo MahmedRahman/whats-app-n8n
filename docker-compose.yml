@@ -1,0 +1,18 @@
+services:
+  whatsapp-n8n:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: whatsapp-n8n
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./data:/usr/src/app/.wwebjs_auth
+      - ./.env.docker:/usr/src/app/.env
+    environment:
+      - NODE_ENV=production
+      - TZ=UTC
+      - PORT=3002
+    # Increase shared memory size for Chromium
+    shm_size: '1gb'
