@@ -1,8 +1,6 @@
 services:
   whatsapp-n8n:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: digitalhubegyptcom/whatsapp-n8n:latest-amd64
     container_name: whatsapp-n8n
     restart: unless-stopped
     ports:
@@ -14,5 +12,12 @@ services:
       - NODE_ENV=production
       - TZ=UTC
       - PORT=3002
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+      # Puppeteer/Chromium flags to fix container issues
+      - PUPPETEER_ARGS=--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage,--disable-accelerated-2d-canvas,--no-first-run,--no-zygote,--single-process,--disable-gpu
     # Increase shared memory size for Chromium
     shm_size: '1gb'
+    # Add tmpfs mount to avoid file lock issues
+    tmpfs:
+      - /tmp

@@ -2,6 +2,55 @@
 
 This guide provides instructions for deploying the WhatsApp n8n integration on any machine using Docker.
 
+## Quick Start (Using Pre-built Docker Image)
+
+The easiest way to deploy this application is using our pre-built Docker image:
+
+```bash
+# Create a directory for your deployment
+mkdir whatsapp-n8n && cd whatsapp-n8n
+
+# Create a docker-compose.yml file
+cat > docker-compose.yml << 'EOL'
+services:
+  whatsapp-n8n:
+    image: digitalhubegyptcom/whatsapp-n8n:latest-amd64
+    container_name: whatsapp-n8n
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./data:/usr/src/app/.wwebjs_auth
+      - ./.env.docker:/usr/src/app/.env
+    environment:
+      - NODE_ENV=production
+      - TZ=UTC
+      - PORT=3002
+    shm_size: '1gb'
+EOL
+
+# Create .env.docker file
+cat > .env.docker << 'EOL'
+# WhatsApp API Configuration
+WHATSAPP_API_TOKEN=your_whatsapp_api_token
+WHATSAPP_PHONE_NUMBER_ID=your_phone_number_id
+
+# n8n Webhook Configuration
+N8N_WEBHOOK_URL=https://your-n8n-instance/webhook/your-webhook-id
+
+# Port configuration
+PORT=3002
+EOL
+
+# Create data directory for persistent storage
+mkdir -p data
+
+# Start the container
+docker-compose up -d
+```
+
+Then access the application at: http://localhost:3002
+
 ## Prerequisites
 
 - Docker and Docker Compose installed on the target machine

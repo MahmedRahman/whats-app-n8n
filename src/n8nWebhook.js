@@ -2,8 +2,17 @@ const axios = require('axios');
 require('dotenv').config();
 
 class N8nWebhook {
-  constructor() {
-    this.webhookUrl = process.env.N8N_WEBHOOK_URL;
+  constructor(settingsApi) {
+    this.settingsApi = settingsApi;
+  }
+  
+  /**
+   * Get the webhook URL from settings
+   * @returns {string} - Webhook URL
+   */
+  getWebhookUrl() {
+    const settings = this.settingsApi ? this.settingsApi.getSettings() : {};
+    return settings.n8nWebhookUrl || process.env.N8N_WEBHOOK_URL || '';
   }
 
   /**
@@ -13,9 +22,16 @@ class N8nWebhook {
    */
   async trigger(data) {
     try {
+      const webhookUrl = this.getWebhookUrl();
+      
+      if (!webhookUrl) {
+        console.warn('No n8n webhook URL configured, skipping webhook trigger');
+        return { success: false, error: 'No webhook URL configured' };
+      }
+      
       console.log(`Triggering n8n webhook with data:`, JSON.stringify(data, null, 2));
       
-      const response = await axios.post(this.webhookUrl, data, {
+      const response = await axios.post(webhookUrl, data, {
         headers: {
           'Content-Type': 'application/json'
         }

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp to n8n Integration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        h1 {
+            color: #25D366;
+            margin-bottom: 20px;
+        }
+        .qr-container {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+        }
+        #qrcode {
+            width: 256px;
+            height: 256px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #qrcode img {
+            max-width: 100%;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+        }
+        .status.connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status.disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .instructions {
+            text-align: left;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #25D366;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WhatsApp to n8n Integration</h1>
+        
+        <div class="status" id="status">
+            <div class="loading"></div>
+            <span>Waiting for WhatsApp connection...</span>
+        </div>
+        
+        <div class="qr-container">
+            <div id="qrcode">
+                <p>Loading QR code...</p>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Scan the QR code with your WhatsApp mobile app</li>
+                <li>Wait for the connection to be established</li>
+                <li>Once connected, you'll be redirected to the settings page</li>
+                <li>Configure your n8n webhook URL and other settings</li>
+            </ol>
+        </div>
+        
+        <div id="settingsLink" class="hidden">
+            <a href="/settings" class="btn">Go to Settings</a>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Configure Socket.io with options
+        const socket = io({
+            transports: ['websocket', 'polling'],
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            timeout: 20000
+        });
+        
+        const qrcodeDiv = document.getElementById('qrcode');
+        const statusDiv = document.getElementById('status');
+        const settingsLink = document.getElementById('settingsLink');
+        
+        // Debug connection status
+        console.log('Attempting to connect to Socket.io server...');
+        
+        socket.on('connect', () => {
+            console.log('Socket.io connected successfully!');
+            statusDiv.innerHTML = 'Connected to server, waiting for QR code...';
+        });
+        
+        socket.on('connect_error', (error) => {
+            console.error('Socket.io connection error:', error);
+            statusDiv.innerHTML = 'Error connecting to server: ' + error.message;
+            statusDiv.className = 'status disconnected';
+            
+            // Try to reload the page after a few seconds
+            setTimeout(() => {
+                window.location.reload();
+            }, 5000);
+        });
+        
+        socket.on('reconnect_attempt', (attemptNumber) => {
+            console.log(`Socket.io reconnection attempt ${attemptNumber}`);
+            statusDiv.innerHTML = `Reconnecting to server (attempt ${attemptNumber})...`;
+        });
+        
+        socket.on('reconnect', () => {
+            console.log('Socket.io reconnected successfully!');
+            statusDiv.innerHTML = 'Reconnected to server, waiting for QR code...';
+        });
+        
+        socket.on('reconnect_failed', () => {
+            console.error('Socket.io reconnection failed');
+            statusDiv.innerHTML = 'Failed to reconnect to server. Please refresh the page.';
+            statusDiv.className = 'status disconnected';
+        });
+        
+        // Listen for QR code events
+        socket.on('qr', (qrData) => {
+            console.log('QR code received from server');
+            // Display the QR code image
+            qrcodeDiv.innerHTML = `<img src="${qrData}" alt="WhatsApp QR Code" style="max-width: 100%;">`;
+            statusDiv.innerHTML = 'Scan this QR code with your WhatsApp mobile app';
+            statusDiv.className = 'status';
+        });
+        
+        // Listen for ready event (WhatsApp connected)
+        socket.on('ready', (data) => {
+            console.log('WhatsApp ready event received', data);
+            qrcodeDiv.innerHTML = '<p>Connected to WhatsApp!</p>';
+            statusDiv.innerHTML = 'WhatsApp is connected successfully! Redirecting to settings...';
+            statusDiv.className = 'status connected';
+            settingsLink.classList.remove('hidden');
+            
+            // Redirect to settings page after a short delay
+            if (data && data.redirect) {
+                setTimeout(() => {
+                    window.location.href = '/settings';
+                }, 1500);
+            }
+        });
+        
+        // Listen for disconnected event
+        socket.on('disconnected', () => {
+            console.log('WhatsApp disconnected event received');
+            statusDiv.innerHTML = 'WhatsApp is disconnected. Please refresh the page to reconnect.';
+            statusDiv.className = 'status disconnected';
+            qrcodeDiv.innerHTML = '<p>Disconnected</p>';
+            settingsLink.classList.add('hidden');
+        });
+        
+        // Force request for QR code after 3 seconds if not received
+        setTimeout(() => {
+            if (qrcodeDiv.innerHTML.includes('Loading QR code')) {
+                console.log('QR code not received after timeout, requesting manually...');
+                socket.emit('requestQR');
+                
+                // Set up periodic checks to request QR code if still not received
+                const qrCheckInterval = setInterval(() => {
+                    if (qrcodeDiv.innerHTML.includes('Loading QR code')) {
+                        console.log('QR code still not received, requesting again...');
+                        socket.emit('requestQR');
+                    } else {
+                        clearInterval(qrCheckInterval);
+                    }
+                }, 5000);
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

@@ -1,5 +1,7 @@
 # WhatsApp to n8n Integration
 
+[![Docker Image](https://img.shields.io/docker/pulls/digitalhubegyptcom/whatsapp-n8n.svg)](https://hub.docker.com/r/digitalhubegyptcom/whatsapp-n8n)
+
 This application integrates WhatsApp with n8n workflows by:
 1. Receiving messages from WhatsApp
 2. Forwarding these messages to an n8n webhook
@@ -14,7 +16,65 @@ This application integrates WhatsApp with n8n workflows by:
 
 ## Setup Instructions
 
-### Prerequisites
+### Option 1: Quick Setup with Docker (Recommended)
+
+The easiest way to get started is using our pre-built Docker image:
+
+```bash
+# Create a directory for your deployment
+mkdir whatsapp-n8n && cd whatsapp-n8n
+
+# Create a docker-compose.yml file
+cat > docker-compose.yml << 'EOL'
+services:
+  whatsapp-n8n:
+    image: digitalhubegyptcom/whatsapp-n8n:latest-amd64
+    container_name: whatsapp-n8n
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./data:/usr/src/app/.wwebjs_auth
+      - ./.env.docker:/usr/src/app/.env
+    environment:
+      - NODE_ENV=production
+      - TZ=UTC
+      - PORT=3002
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+      # Puppeteer/Chromium flags to fix container issues
+      - PUPPETEER_ARGS=--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage,--disable-accelerated-2d-canvas,--no-first-run,--no-zygote,--single-process,--disable-gpu
+    shm_size: '1gb'
+    # Add tmpfs mount to avoid file lock issues
+    tmpfs:
+      - /tmp
+EOL
+
+# Create .env.docker file
+cat > .env.docker << 'EOL'
+# WhatsApp API Configuration
+WHATSAPP_API_TOKEN=your_whatsapp_api_token
+WHATSAPP_PHONE_NUMBER_ID=your_phone_number_id
+
+# n8n Webhook Configuration
+N8N_WEBHOOK_URL=https://your-n8n-instance/webhook/your-webhook-id
+
+# Port configuration
+PORT=3002
+EOL
+
+# Create data directory for persistent storage
+mkdir -p data
+
+# Start the container
+docker-compose up -d
+```
+
+Then access the application at: http://localhost:3002
+
+### Option 2: Manual Setup
+
+#### Prerequisites
 
 - Node.js (v14 or higher)
 - npm or yarn
@@ -41,6 +101,8 @@ This application integrates WhatsApp with n8n workflows by:
 
 ### Running the Application
 
+#### Local Development
+
 Start the application:
 ```
 npm start
@@ -50,6 +112,47 @@ For development with auto-restart:
 ```
 npm run dev
 ```
+
+#### Docker Deployment
+
+You can also run the application using Docker:
+
+1. Build and start the container:
+   ```
+   docker-compose up -d
+   ```
+
+2. View logs:
+   ```
+   docker-compose logs -f
+   ```
+
+3. Stop the container:
+   ```
+   docker-compose down
+   ```
+
+4. Access the application:
+   ```
+   http://localhost:3002
+   ```
+
+The Docker setup includes:
+- Persistent storage for WhatsApp session data
+- Proper environment for running Puppeteer/Chromium
+- Automatic restart on failure
+
+##### Troubleshooting Docker
+
+- **Port conflicts**: If port 3001 is already in use, modify the port mapping in `docker-compose.yml`:
+  ```yaml
+  ports:
+    - "3002:3000"  # Change 3002 to any available port
+  ```
+
+- **QR Code scanning**: Access the web interface at http://localhost:3002 to scan the QR code with your WhatsApp mobile app
+
+- **Container not starting**: Check logs with `docker-compose logs -f` to identify issues
 
 ### WhatsApp Web Authentication
 

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp to n8n Settings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #25D366;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        h2 {
+            color: #128C7E;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .status.connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status.disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        form {
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="url"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        button {
+            background-color: #25D366;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #128C7E;
+        }
+        .alert {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .webhook-url {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            word-break: break-all;
+        }
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .toggle-container label {
+            margin-right: 10px;
+            margin-bottom: 0;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #25D366;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .blacklist-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .blacklist-item input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .blacklist-item button {
+            width: auto;
+            padding: 8px 12px;
+            margin-top: 0;
+            background-color: #dc3545;
+        }
+        .add-blacklist-btn {
+            background-color: #6c757d;
+            width: auto;
+            padding: 8px 15px;
+            margin-top: 10px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-color: #ddd;
+            border-bottom-color: #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #25D366;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>WhatsApp to n8n Settings</h1>
+            <button id="logoutBtn" class="logout-btn">Logout</button>
+        </div>
+        
+        <div id="status" class="status">Checking connection status...</div>
+        
+        <div class="webhook-url">
+            <strong>Your Webhook URL:</strong>
+            <div id="webhookUrl">Loading...</div>
+            <small>Configure this URL in your WhatsApp Business API settings</small>
+        </div>
+        
+        <div id="alert" class="alert"></div>
+        
+        <form id="settingsForm">
+            <!-- General Settings Section -->
+            <h2>General Settings</h2>
+            <div class="toggle-container">
+                <label for="serviceEnabled">Service Status:</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="serviceEnabled" name="serviceEnabled" checked>
+                    <span class="slider"></span>
+                </label>
+                <span id="statusText" style="margin-left: 10px;">Enabled</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="n8nWebhookUrl">n8n Webhook URL:</label>
+                <input type="url" id="n8nWebhookUrl" name="n8nWebhookUrl" placeholder="https://your-n8n-instance.com/webhook/..." required>
+                <small>The webhook URL from your n8n workflow</small>
+            </div>
+            
+            <!-- Blacklist Section -->
+            <h2>Blacklist Settings</h2>
+            <div class="toggle-container">
+                <label for="blacklistEnabled">Blacklist Status:</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="blacklistEnabled" name="blacklistEnabled" checked>
+                    <span class="slider"></span>
+                </label>
+                <span id="blacklistStatusText" style="margin-left: 10px;">Enabled</span>
+            </div>
+            
+            <p>Messages from these numbers will be ignored when blacklist is enabled</p>
+            
+            <div id="blacklist-container">
+                <!-- Blacklist items will be added here -->
+            </div>
+            
+            <button type="button" class="add-blacklist-btn" id="addBlacklistBtn">+ Add Number</button>
+            
+            <!-- System Messages Section -->
+            <h2>System Messages</h2>
+            
+            <div class="form-group">
+                <label for="welcomeMessage">Welcome Message:</label>
+                <textarea id="welcomeMessage" name="welcomeMessage" placeholder="Message sent when a user contacts you for the first time"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="unavailableMessage">Unavailable Message:</label>
+                <textarea id="unavailableMessage" name="unavailableMessage" placeholder="Message sent when the service is disabled"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="blacklistMessage">Blacklist Message:</label>
+                <textarea id="blacklistMessage" name="blacklistMessage" placeholder="Message sent to blacklisted numbers (leave empty to ignore silently)"></textarea>
+            </div>
+            
+            <button type="submit">Save Settings</button>
+        </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const statusDiv = document.getElementById('status');
+        const alertDiv = document.getElementById('alert');
+        const webhookUrlDiv = document.getElementById('webhookUrl');
+        const settingsForm = document.getElementById('settingsForm');
+        const serviceEnabledToggle = document.getElementById('serviceEnabled');
+        const statusText = document.getElementById('statusText');
+        const blacklistEnabledToggle = document.getElementById('blacklistEnabled');
+        const blacklistStatusText = document.getElementById('blacklistStatusText');
+        const blacklistContainer = document.getElementById('blacklist-container');
+        const addBlacklistBtn = document.getElementById('addBlacklistBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
+        // Get current hostname and construct webhook URL
+        const hostname = window.location.hostname;
+        const port = window.location.port ? `:${window.location.port}` : '';
+        const protocol = window.location.protocol;
+        const webhookUrl = `${protocol}//${hostname}${port}/webhook`;
+        webhookUrlDiv.textContent = webhookUrl;
+        
+        // Toggle service status
+        serviceEnabledToggle.addEventListener('change', function() {
+            statusText.textContent = this.checked ? 'Enabled' : 'Disabled';
+        });
+        
+        // Toggle blacklist status
+        blacklistEnabledToggle.addEventListener('change', function() {
+            blacklistStatusText.textContent = this.checked ? 'Enabled' : 'Disabled';
+        });
+        
+        // Add blacklist number
+        addBlacklistBtn.addEventListener('click', function() {
+            addBlacklistItem();
+        });
+        
+        function addBlacklistItem(number = '') {
+            const item = document.createElement('div');
+            item.className = 'blacklist-item';
+            item.innerHTML = `
+                <input type="text" name="blacklist[]" placeholder="+1234567890" value="${number}">
+                <button type="button" class="remove-blacklist-btn">Remove</button>
+            `;
+            
+            // Add event listener to remove button
+            item.querySelector('.remove-blacklist-btn').addEventListener('click', function() {
+                item.remove();
+            });
+            
+            blacklistContainer.appendChild(item);
+        }
+        
+        // Listen for connection status
+        socket.on('ready', () => {
+            statusDiv.innerHTML = 'WhatsApp is connected';
+            statusDiv.className = 'status connected';
+        });
+        
+        socket.on('disconnected', () => {
+            statusDiv.innerHTML = 'WhatsApp is disconnected';
+            statusDiv.className = 'status disconnected';
+            
+            // Redirect to login page after a short delay
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1500);
+        });
+        
+        // Handle logout button click
+        logoutBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout? This will disconnect your WhatsApp session.')) {
+                fetch('/api/logout', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('Logging out...', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 1500);
+                    } else {
+                        showAlert('Error logging out: ' + data.error, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error logging out:', error);
+                    showAlert('Error logging out. Please try again.', 'danger');
+                });
+            }
+        });
+        
+        // Load current settings
+        fetch('/api/unified-settings')
+            .then(response => response.json())
+            .then(data => {
+                // General settings
+                document.getElementById('n8nWebhookUrl').value = data.n8nWebhookUrl || '';
+                
+                // Service status
+                const serviceEnabled = data.serviceEnabled !== false; // Default to true if not set
+                serviceEnabledToggle.checked = serviceEnabled;
+                statusText.textContent = serviceEnabled ? 'Enabled' : 'Disabled';
+                
+                // Blacklist status
+                const blacklistEnabled = data.blacklistEnabled !== false; // Default to true if not set
+                blacklistEnabledToggle.checked = blacklistEnabled;
+                blacklistStatusText.textContent = blacklistEnabled ? 'Enabled' : 'Disabled';
+                
+                // Blacklist numbers
+                if (data.blacklist && Array.isArray(data.blacklist)) {
+                    // Clear existing items
+                    blacklistContainer.innerHTML = '';
+                    
+                    // Add each blacklisted number
+                    data.blacklist.forEach(number => {
+                        addBlacklistItem(number);
+                    });
+                }
+                
+                // System messages
+                document.getElementById('welcomeMessage').value = data.welcomeMessage || '';
+                document.getElementById('unavailableMessage').value = data.unavailableMessage || '';
+                document.getElementById('blacklistMessage').value = data.blacklistMessage || '';
+            })
+            .catch(error => {
+                console.error('Error loading settings:', error);
+                showAlert('Error loading settings. Please try again.', 'danger');
+            });
+        
+        // Save settings
+        settingsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Collect blacklist numbers
+            const blacklistInputs = document.querySelectorAll('input[name="blacklist[]"]');
+            const blacklist = Array.from(blacklistInputs)
+                .map(input => input.value.trim())
+                .filter(value => value !== '');
+            
+            const formData = {
+                // General settings
+                n8nWebhookUrl: document.getElementById('n8nWebhookUrl').value,
+                
+                // Service status
+                serviceEnabled: document.getElementById('serviceEnabled').checked,
+                
+                // Blacklist
+                blacklistEnabled: document.getElementById('blacklistEnabled').checked,
+                blacklist: blacklist,
+                
+                // System messages
+                welcomeMessage: document.getElementById('welcomeMessage').value,
+                unavailableMessage: document.getElementById('unavailableMessage').value,
+                blacklistMessage: document.getElementById('blacklistMessage').value
+            };
+            
+            fetch('/api/unified-settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Settings saved successfully!', 'success');
+                } else {
+                    showAlert('Error saving settings: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error saving settings:', error);
+                showAlert('Error saving settings. Please try again.', 'danger');
+            });
+        });
+        
+        function showAlert(message, type) {
+            alertDiv.textContent = message;
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
