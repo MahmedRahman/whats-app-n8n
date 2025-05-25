@@ -15,11 +15,15 @@ class SettingsApi {
     try {
       if (fs.existsSync(this.settingsPath)) {
         const data = fs.readFileSync(this.settingsPath, 'utf8');
-        return JSON.parse(data);
+        console.log('Loading settings from file:', this.settingsPath);
+        const settings = JSON.parse(data);
+        console.log('Loaded settings:', JSON.stringify(settings, null, 2));
+        return settings;
       }
+      console.log('Settings file does not exist, using defaults');
       return {
         // General settings
-        n8nWebhookUrl: process.env.N8N_WEBHOOK_URL || '',
+        n8nWebhookUrl: '',
         verifyToken: process.env.VERIFY_TOKEN || '',
         whatsappApiToken: process.env.WHATSAPP_API_TOKEN || '',
         whatsappPhoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || '',
@@ -39,7 +43,7 @@ class SettingsApi {
       console.error('Error loading settings:', error);
       return {
         // General settings
-        n8nWebhookUrl: process.env.N8N_WEBHOOK_URL || '',
+        n8nWebhookUrl: '',
         verifyToken: process.env.VERIFY_TOKEN || '',
         whatsappApiToken: process.env.WHATSAPP_API_TOKEN || '',
         whatsappPhoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || '',
@@ -65,9 +69,11 @@ class SettingsApi {
    */
   saveSettings(settings) {
     try {
+      console.log('Saving settings:', JSON.stringify(settings, null, 2));
+      console.log('Webhook URL being saved:', settings.n8nWebhookUrl);
+      
       // Update environment variables in memory
       // General settings
-      process.env.N8N_WEBHOOK_URL = settings.n8nWebhookUrl;
       process.env.VERIFY_TOKEN = settings.verifyToken;
       process.env.WHATSAPP_API_TOKEN = settings.whatsappApiToken;
       process.env.WHATSAPP_PHONE_NUMBER_ID = settings.whatsappPhoneNumberId;

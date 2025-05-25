@@ -12,7 +12,9 @@ class N8nWebhook {
    */
   getWebhookUrl() {
     const settings = this.settingsApi ? this.settingsApi.getSettings() : {};
-    return settings.n8nWebhookUrl || process.env.N8N_WEBHOOK_URL || '';
+    console.log('Current settings in getWebhookUrl:', JSON.stringify(settings, null, 2));
+    console.log('Webhook URL from settings:', settings.n8nWebhookUrl);
+    return settings.n8nWebhookUrl || '';
   }
 
   /**

@@ -199,6 +199,27 @@
             settingsLink.classList.add('hidden');
         });
         
+        // Listen for auth_failed event
+        socket.on('auth_failed', (data) => {
+            console.log('Authentication failed event received', data);
+            statusDiv.innerHTML = data.message || 'Authentication failed. Please refresh the page to try again.';
+            statusDiv.className = 'status disconnected';
+            qrcodeDiv.innerHTML = '<p>Authentication Failed</p>';
+            settingsLink.classList.add('hidden');
+        });
+        
+        // Listen for auth_redirect event
+        socket.on('auth_redirect', (data) => {
+            console.log('Authentication redirect event received', data);
+            statusDiv.innerHTML = data.message || 'Authentication failed. Redirecting to login page...';
+            statusDiv.className = 'status disconnected';
+            
+            // Redirect to login page after a short delay
+            setTimeout(() => {
+                window.location.href = data.redirect || '/';
+            }, 2000);
+        });
+        
         // Force request for QR code after 3 seconds if not received
         setTimeout(() => {
             if (qrcodeDiv.innerHTML.includes('Loading QR code')) {

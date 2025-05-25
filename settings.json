@@ -1,6 +1,7 @@
 {
   "n8nWebhookUrl": "https://n8n.arabi-aiflow.com/webhook/e49d98ad-e148-4343-9902-43058a34b656",
   "serviceEnabled": true,
+  "blacklistEnabled": true,
   "blacklist": [
     "+201002089079"
   ],
